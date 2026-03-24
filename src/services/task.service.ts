@@ -38,6 +38,8 @@ function toTask(id: string, data: Record<string, unknown>): Task {
     updatedAt: (data.updatedAt as { toDate: () => Date })?.toDate() ?? new Date(),
     completedAt: (data.completedAt as { toDate: () => Date } | null)?.toDate() ?? null,
     isActiveTask: (data.isActiveTask as boolean) ?? false,
+    projectId: (data.projectId as string | null) ?? null,
+    dueDate: (data.dueDate as { toDate: () => Date } | null)?.toDate() ?? null,
   }
 }
 
@@ -57,6 +59,8 @@ export async function createTask(uid: string, input: CreateTaskInput, order: num
     order,
     isActiveTask: false,
     completedAt: null,
+    projectId: input.projectId ?? null,
+    dueDate: input.dueDate ?? null,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   }

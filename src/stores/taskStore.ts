@@ -2,9 +2,10 @@ import { create } from 'zustand'
 import type { Task, TaskStatus } from '@/types'
 
 interface TaskFilter {
-  status: 'all' | TaskStatus
+  status: 'all' | TaskStatus | 'today' | 'overdue'
   tags: string[]
   searchQuery: string
+  projectId: string | null
 }
 
 interface TaskState {
@@ -33,7 +34,7 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
   tasks: [],
   isLoading: false,
   error: null,
-  filter: { status: 'all', tags: [], searchQuery: '' },
+  filter: { status: 'all', tags: [], searchQuery: '', projectId: null },
 
   setTasks: (tasks) => set({ tasks }),
 
@@ -63,12 +64,29 @@ export const useTaskStore = create<TaskState & TaskActions>((set, get) => ({
 
   getFilteredTasks: () => {
     const { tasks, filter } = get()
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     return tasks
       .filter((t) => {
+        if (filter.status === 'today') {
+          if (t.status !== 'active') return false
+          if (!t.dueDate) return false
+          const due = new Date(t.dueDate)
+          due.setHours(0, 0, 0, 0)
+          return due.getTime() === today.getTime()
+        }
+        if (filter.status === 'overdue') {
+          if (t.status !== 'active') return false
+          if (!t.dueDate) return false
+          const due = new Date(t.dueDate)
+          due.setHours(0, 0, 0, 0)
+          return due.getTime() < today.getTime()
+        }
         if (filter.status !== 'all' && t.status !== filter.status) return false
+        if (filter.projectId && t.projectId !== filter.projectId) return false
         if (filter.tags.length > 0 && !filter.tags.some((tag) => t.tags.includes(tag))) return false
-        if (filter.searchQuery && !t.title.toLowerCase().includes(filter.searchQuery.toLowerCase()))
-          return false
+        if (filter.searchQuery && !t.title.toLowerCase().includes(filter.searchQuery.toLowerCase())) return false
         return true
       })
       .sort((a, b) => a.order - b.order)

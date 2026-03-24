@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { GripVertical, Play, Pencil, Trash2, CheckCircle2, Circle } from 'lucide-react'
+import { GripVertical, Play, Pencil, Trash2, CheckCircle2, Circle, CalendarClock } from 'lucide-react'
 import { cn } from '@lib/utils'
 import { PomodoroCounter } from './PomodoroCounter'
 import { TagBadge } from './TagBadge'
 import { ConfirmDialog } from '@components/ui/ConfirmDialog'
-import type { Task, CreateTaskInput } from '@/types'
+import type { Task, CreateTaskInput, Project } from '@/types'
 import { TaskForm } from './TaskForm'
 
 interface Props {
@@ -16,9 +16,26 @@ interface Props {
   onDelete: (id: string) => Promise<void>
   onSetActive: (id: string | null) => Promise<void>
   isActive: boolean
+  projects: Project[]
 }
 
-export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive }: Props) {
+function getDueDateInfo(dueDate: Date | null): { label: string; className: string } | null {
+  if (!dueDate) return null
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(dueDate)
+  due.setHours(0, 0, 0, 0)
+  const diff = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  if (diff < 0) return { label: 'Overdue', className: 'text-red-500 bg-red-50 dark:bg-red-500/10' }
+  if (diff === 0) return { label: 'Today', className: 'text-orange-500 bg-orange-50 dark:bg-orange-500/10' }
+  if (diff === 1) return { label: 'Tomorrow', className: 'text-yellow-600 bg-yellow-50 dark:bg-yellow-500/10' }
+  return {
+    label: due.toLocaleDateString('en', { month: 'short', day: 'numeric' }),
+    className: 'text-neutral-400 bg-neutral-100 dark:bg-neutral-800',
+  }
+}
+
+export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive, projects }: Props) {
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const navigate = useNavigate()
@@ -29,7 +46,6 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive }: Pr
   }
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
-
   const style = { transform: CSS.Transform.toString(transform), transition }
 
   const handleEditSubmit = async (input: CreateTaskInput) => {
@@ -43,6 +59,9 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive }: Pr
     })
   }
 
+  const dueDateInfo = getDueDateInfo(task.dueDate)
+  const project = projects.find((p) => p.id === task.projectId)
+
   return (
     <>
       <div
@@ -55,6 +74,11 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive }: Pr
           task.status === 'completed' && 'opacity-60',
         )}
       >
+        {/* Project color bar */}
+        {project && (
+          <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full" style={{ backgroundColor: project.color }} />
+        )}
+
         {/* Drag handle */}
         <button
           {...attributes}
@@ -79,6 +103,12 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive }: Pr
           )}
           <div className="flex flex-wrap items-center gap-2 mt-2">
             <PomodoroCounter completed={task.completedPomodoros} estimated={task.estimatedPomodoros} />
+            {dueDateInfo && (
+              <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium', dueDateInfo.className)}>
+                <CalendarClock size={10} />
+                {dueDateInfo.label}
+              </span>
+            )}
             {task.tags.map((tag) => (
               <TagBadge key={tag} tag={tag} color={task.tagColors[tag]} />
             ))}
@@ -109,7 +139,7 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive }: Pr
         </div>
       </div>
 
-      <TaskForm isOpen={showEdit} onClose={() => setShowEdit(false)} onSubmit={handleEditSubmit} initialData={task} />
+      <TaskForm isOpen={showEdit} onClose={() => setShowEdit(false)} onSubmit={handleEditSubmit} initialData={task} projects={projects} />
       <ConfirmDialog
         isOpen={showDelete}
         onClose={() => setShowDelete(false)}

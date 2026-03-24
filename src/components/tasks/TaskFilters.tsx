@@ -2,31 +2,36 @@ import { Search } from 'lucide-react'
 import { cn } from '@lib/utils'
 import type { TaskStatus } from '@/types'
 
+type FilterStatus = 'all' | TaskStatus | 'today' | 'overdue'
+
 interface Props {
-  filter: { status: 'all' | TaskStatus; searchQuery: string }
-  onFilter: (f: Partial<{ status: 'all' | TaskStatus; searchQuery: string }>) => void
+  filter: { status: FilterStatus; searchQuery: string; projectId: string | null }
+  onFilter: (f: Partial<{ status: FilterStatus; searchQuery: string; projectId: string | null }>) => void
 }
 
-const STATUS_TABS: { value: 'all' | TaskStatus; label: string }[] = [
+const STATUS_TABS: { value: FilterStatus; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'active', label: 'Active' },
   { value: 'completed', label: 'Done' },
+  { value: 'today', label: 'Today' },
+  { value: 'overdue', label: 'Overdue' },
 ]
 
 export function TaskFilters({ filter, onFilter }: Props) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      {/* Status tabs */}
-      <div className="flex bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 gap-1">
+      <div className="flex bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1 gap-1 overflow-x-auto scrollbar-none">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
             onClick={() => onFilter({ status: tab.value })}
             className={cn(
-              'px-3 py-1 rounded-lg text-sm font-medium transition-all',
+              'px-3 py-1 rounded-lg text-sm font-medium transition-all whitespace-nowrap',
               filter.status === tab.value
                 ? 'bg-white dark:bg-neutral-900 shadow-sm text-neutral-900 dark:text-neutral-100'
                 : 'text-neutral-500 hover:text-neutral-700',
+              tab.value === 'overdue' && filter.status !== 'overdue' && 'text-red-400 hover:text-red-500',
+              tab.value === 'today' && filter.status !== 'today' && 'text-orange-400 hover:text-orange-500',
             )}
           >
             {tab.label}
@@ -34,7 +39,6 @@ export function TaskFilters({ filter, onFilter }: Props) {
         ))}
       </div>
 
-      {/* Search */}
       <div className="relative flex-1 sm:max-w-xs">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
         <input

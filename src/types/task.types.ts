@@ -14,7 +14,9 @@ export interface Task {
   updatedAt: Date
   completedAt: Date | null
   isActiveTask: boolean
+  projectId: string | null
+  dueDate: Date | null
 }
 
-export type CreateTaskInput = Pick<Task, 'title' | 'notes' | 'estimatedPomodoros' | 'tags' | 'tagColors'>
+export type CreateTaskInput = Pick<Task, 'title' | 'notes' | 'estimatedPomodoros' | 'tags' | 'tagColors' | 'projectId' | 'dueDate'>
 export type UpdateTaskInput = Partial<Omit<Task, 'id' | 'createdAt'>>

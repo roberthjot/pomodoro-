@@ -13,7 +13,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { TaskItem } from './TaskItem'
-import type { Task } from '@/types'
+import type { Task, Project } from '@/types'
 
 interface Props {
   tasks: Task[]
@@ -22,9 +22,10 @@ interface Props {
   onDelete: (id: string) => Promise<void>
   onSetActive: (id: string | null) => Promise<void>
   onReorder: (sourceIndex: number, destinationIndex: number) => Promise<void>
+  projects: Project[]
 }
 
-export function TaskList({ tasks, activeTask, onUpdate, onDelete, onSetActive, onReorder }: Props) {
+export function TaskList({ tasks, activeTask, onUpdate, onDelete, onSetActive, onReorder, projects }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -52,6 +53,7 @@ export function TaskList({ tasks, activeTask, onUpdate, onDelete, onSetActive, o
               onUpdate={onUpdate}
               onDelete={onDelete}
               onSetActive={onSetActive}
+              projects={projects}
             />
           ))}
         </div>
