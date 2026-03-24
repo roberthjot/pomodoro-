@@ -68,7 +68,7 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive, proj
         ref={setNodeRef}
         style={style}
         className={cn(
-          'flex items-start gap-3 p-3 rounded-xl border bg-white dark:bg-neutral-900 transition-all group',
+          'relative flex items-start gap-3 p-3 rounded-xl border bg-white dark:bg-neutral-900 transition-all group overflow-hidden',
           isDragging ? 'opacity-50 shadow-lg' : '',
           isActive ? 'border-accent/50 bg-accent/5 dark:bg-accent/10' : 'border-neutral-200 dark:border-neutral-800',
           task.status === 'completed' && 'opacity-60',
@@ -76,14 +76,14 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive, proj
       >
         {/* Project color bar */}
         {project && (
-          <div className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full" style={{ backgroundColor: project.color }} />
+          <div className="absolute left-0 top-0 bottom-0 w-1 rounded-none" style={{ backgroundColor: project.color }} />
         )}
 
         {/* Drag handle */}
         <button
           {...attributes}
           {...listeners}
-          className="mt-0.5 text-neutral-300 dark:text-neutral-600 cursor-grab active:cursor-grabbing hover:text-neutral-500 transition-colors"
+          className={cn('mt-0.5 text-neutral-300 dark:text-neutral-600 cursor-grab active:cursor-grabbing hover:text-neutral-500 transition-colors', project && 'ml-1')}
         >
           <GripVertical size={16} />
         </button>
@@ -139,7 +139,7 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive, proj
         </div>
       </div>
 
-      <TaskForm isOpen={showEdit} onClose={() => setShowEdit(false)} onSubmit={handleEditSubmit} initialData={task} projects={projects} />
+      <TaskForm key={task.id} isOpen={showEdit} onClose={() => setShowEdit(false)} onSubmit={handleEditSubmit} initialData={task} projects={projects} />
       <ConfirmDialog
         isOpen={showDelete}
         onClose={() => setShowDelete(false)}
