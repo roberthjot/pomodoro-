@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useSettingsStore } from '@stores/settingsStore'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical, Play, Pencil, Trash2, CheckCircle2, Circle, CalendarClock } from 'lucide-react'
@@ -39,6 +40,7 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive, proj
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const navigate = useNavigate()
+  const pomodoroDuration = useSettingsStore((s) => s.timer.pomodoroDuration)
 
   const handlePlay = async () => {
     if (!isActive) await onSetActive(task.id)
@@ -102,7 +104,7 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive, proj
             <p className="text-xs text-neutral-400 mt-0.5 line-clamp-1">{task.notes}</p>
           )}
           <div className="flex flex-wrap items-center gap-2 mt-2">
-            <PomodoroCounter completed={task.completedPomodoros} estimated={task.estimatedPomodoros} />
+            <PomodoroCounter completed={task.completedPomodoros} estimated={task.estimatedPomodoros} minutesPerPomodoro={pomodoroDuration} />
             {dueDateInfo && (
               <span className={cn('inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-xs font-medium', dueDateInfo.className)}>
                 <CalendarClock size={10} />

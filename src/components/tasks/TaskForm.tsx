@@ -3,8 +3,16 @@ import { Modal } from '@components/ui/Modal'
 import { Input } from '@components/ui/Input'
 import { Button } from '@components/ui/Button'
 import { Slider } from '@components/ui/Slider'
+import { useSettingsStore } from '@stores/settingsStore'
 import type { Task, CreateTaskInput, Project } from '@/types'
 import { ACCENT_COLORS } from '@config/constants'
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) return `${minutes}m`
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  return m > 0 ? `${h}h ${m}m` : `${h}h`
+}
 
 interface Props {
   isOpen: boolean
@@ -21,6 +29,7 @@ function toDateString(date: Date | null | undefined): string {
 }
 
 export function TaskForm({ isOpen, onClose, onSubmit, initialData, projects }: Props) {
+  const pomodoroDuration = useSettingsStore((s) => s.timer.pomodoroDuration)
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [estimated, setEstimated] = useState(initialData?.estimatedPomodoros ?? 1)
@@ -84,7 +93,12 @@ export function TaskForm({ isOpen, onClose, onSubmit, initialData, projects }: P
           />
         </div>
 
-        <Slider label="Estimated pomodoros" value={estimated} min={1} max={20} onChange={setEstimated} />
+        <div className="flex flex-col gap-1">
+          <Slider label="Estimated pomodoros" value={estimated} min={1} max={20} onChange={setEstimated} />
+          <p className="text-xs text-neutral-400 text-right">
+            {estimated} 🍅 · ~{formatDuration(estimated * pomodoroDuration)}
+          </p>
+        </div>
 
         {/* Project selector */}
         {projects.length > 0 && (
