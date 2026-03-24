@@ -3,12 +3,17 @@ import { Moon, Sun, Monitor, LogOut } from 'lucide-react'
 import { Avatar } from '@components/ui/Avatar'
 import { useAuthStore } from '@stores/authStore'
 import { useTheme } from '@hooks/useTheme'
-import { useAuth } from '@hooks/useAuth'
+import { signOut as firebaseSignOut } from '@services/auth.service'
 
 export function Header() {
-  const { userProfile } = useAuthStore()
+  const { userProfile, setUser, setUserProfile } = useAuthStore()
   const { theme, setTheme } = useTheme()
-  const { signOut } = useAuth()
+
+  const signOut = async () => {
+    await firebaseSignOut()
+    setUser(null)
+    setUserProfile(null)
+  }
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
