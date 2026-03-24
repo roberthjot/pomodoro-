@@ -13,8 +13,8 @@ function formatDuration(minutes: number): string {
 
 export function PomodoroCounter({ completed, estimated, minutesPerPomodoro }: Props) {
   const remaining = estimated - completed
-  const remainingMinutes = minutesPerPomodoro ? remaining * minutesPerPomodoro : null
-  const totalMinutes = minutesPerPomodoro ? estimated * minutesPerPomodoro : null
+  const remainingMinutes = minutesPerPomodoro != null ? remaining * minutesPerPomodoro : null
+  const totalMinutes = minutesPerPomodoro != null ? estimated * minutesPerPomodoro : null
 
   return (
     <div className="flex items-center gap-1.5 flex-wrap">

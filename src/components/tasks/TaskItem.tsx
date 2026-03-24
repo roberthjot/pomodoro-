@@ -40,7 +40,7 @@ export function TaskItem({ task, onUpdate, onDelete, onSetActive, isActive, proj
   const [showEdit, setShowEdit] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const navigate = useNavigate()
-  const pomodoroDuration = useSettingsStore((s) => s.timer.pomodoroDuration)
+  const pomodoroDuration = useSettingsStore((s) => s.timer.pomodoroDuration) ?? 25
 
   const handlePlay = async () => {
     if (!isActive) await onSetActive(task.id)

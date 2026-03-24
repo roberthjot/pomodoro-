@@ -52,7 +52,13 @@ export const useSettingsStore = create<SettingsState & SettingsActions>()(
         set((state) => ({ appearance: { ...state.appearance, ...s } })),
 
       loadFromFirestore: (data) =>
-        set({ ...data, isSynced: true }),
+        set((state) => ({
+          timer: { ...state.timer, ...data.timer },
+          sound: { ...state.sound, ...data.sound },
+          notifications: { ...state.notifications, ...data.notifications },
+          appearance: { ...state.appearance, ...data.appearance },
+          isSynced: true,
+        })),
 
       resetToDefaults: () =>
         set({ ...defaultSettings }),
