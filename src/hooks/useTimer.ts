@@ -8,6 +8,7 @@ import { useSound } from './useSound'
 import { useNotifications } from './useNotifications'
 import { recordSession } from '@services/stats.service'
 import { updateStreakAndCounters } from '@services/user.service'
+import { updateTask as persistTaskUpdate } from '@services/task.service'
 import { formatTime } from '@lib/utils'
 import { todayKey } from '@lib/dateUtils'
 import { ambientMusic } from '@lib/ambientMusic'
@@ -82,7 +83,29 @@ export function useTimer() {
       // Increment task pomodoro count
       const activeTask = taskStore.getActiveTask()
       if (activeTask) {
-        taskStore.incrementCompleted(activeTask.id)
+        const nextCompletedPomodoros = activeTask.completedPomodoros + 1
+        const taskUpdates = {
+          completedPomodoros: nextCompletedPomodoros,
+          status:
+            nextCompletedPomodoros >= activeTask.estimatedPomodoros
+              ? ('completed' as const)
+              : activeTask.status,
+          completedAt:
+            nextCompletedPomodoros >= activeTask.estimatedPomodoros ? new Date() : activeTask.completedAt,
+          isActiveTask:
+            nextCompletedPomodoros >= activeTask.estimatedPomodoros ? false : activeTask.isActiveTask,
+        }
+
+        taskStore.updateTask(activeTask.id, taskUpdates)
+
+        if (user) {
+          try {
+            await persistTaskUpdate(user.uid, activeTask.id, taskUpdates)
+          } catch (error) {
+            console.error('Failed to persist task pomodoro progress', error)
+            toast.error('Pomodoro completed, but task progress could not be synced.')
+          }
+        }
       }
 
       // Save session to Firestore
