@@ -39,14 +39,6 @@ export default defineConfig({
               expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 },
             },
           },
-          {
-            urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
-            handler: 'NetworkFirst',
-            options: {
-              cacheName: 'firestore-cache',
-              networkTimeoutSeconds: 10,
-            },
-          },
         ],
         navigateFallback: 'index.html',
         navigateFallbackDenylist: [/^\/__/],

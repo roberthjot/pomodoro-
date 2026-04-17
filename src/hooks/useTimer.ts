@@ -11,6 +11,7 @@ import { updateStreakAndCounters } from '@services/user.service'
 import { formatTime } from '@lib/utils'
 import { todayKey } from '@lib/dateUtils'
 import { ambientMusic } from '@lib/ambientMusic'
+import toast from 'react-hot-toast'
 import type { TimerMode } from '@/types'
 
 export function useTimer() {
@@ -86,50 +87,55 @@ export function useTimer() {
 
       // Save session to Firestore
       if (user) {
-        const startedAt = timer.startedAt ? new Date(timer.startedAt) : new Date()
-        const completedAt = new Date()
-        await recordSession(user.uid, {
-          taskId: activeTask?.id ?? null,
-          taskTitle: activeTask?.title ?? null,
-          mode: 'pomodoro',
-          durationMinutes,
-          startedAt,
-          completedAt,
-          wasInterrupted: false,
-          dateKey: todayKey(),
-        })
-
-        // Update streak
-        if (userProfile) {
-          const lastDate = userProfile.lastSessionDate
-          const today = new Date()
-          today.setHours(0, 0, 0, 0)
-          const yesterday = new Date(today)
-          yesterday.setDate(yesterday.getDate() - 1)
-
-          let newStreak = userProfile.currentStreak
-          if (!lastDate) {
-            newStreak = 1
-          } else {
-            const last = new Date(lastDate)
-            last.setHours(0, 0, 0, 0)
-            if (last.getTime() === yesterday.getTime()) {
-              newStreak += 1
-            } else if (last.getTime() < yesterday.getTime()) {
-              newStreak = 1
-            }
-          }
-
-          const longestStreak = Math.max(newStreak, userProfile.longestStreak)
-          statsStore.setStreak(newStreak, longestStreak)
-
-          await updateStreakAndCounters(user.uid, {
-            currentStreak: newStreak,
-            longestStreak,
-            totalSessions: userProfile.totalSessions + 1,
-            totalFocusMinutes: userProfile.totalFocusMinutes + durationMinutes,
-            lastSessionDate: new Date(),
+        try {
+          const startedAt = timer.startedAt ? new Date(timer.startedAt) : new Date()
+          const completedAt = new Date()
+          await recordSession(user.uid, {
+            taskId: activeTask?.id ?? null,
+            taskTitle: activeTask?.title ?? null,
+            mode: 'pomodoro',
+            durationMinutes,
+            startedAt,
+            completedAt,
+            wasInterrupted: false,
+            dateKey: todayKey(),
           })
+
+          // Update streak
+          if (userProfile) {
+            const lastDate = userProfile.lastSessionDate
+            const today = new Date()
+            today.setHours(0, 0, 0, 0)
+            const yesterday = new Date(today)
+            yesterday.setDate(yesterday.getDate() - 1)
+
+            let newStreak = userProfile.currentStreak
+            if (!lastDate) {
+              newStreak = 1
+            } else {
+              const last = new Date(lastDate)
+              last.setHours(0, 0, 0, 0)
+              if (last.getTime() === yesterday.getTime()) {
+                newStreak += 1
+              } else if (last.getTime() < yesterday.getTime()) {
+                newStreak = 1
+              }
+            }
+
+            const longestStreak = Math.max(newStreak, userProfile.longestStreak)
+            statsStore.setStreak(newStreak, longestStreak)
+
+            await updateStreakAndCounters(user.uid, {
+              currentStreak: newStreak,
+              longestStreak,
+              totalSessions: userProfile.totalSessions + 1,
+              totalFocusMinutes: userProfile.totalFocusMinutes + durationMinutes,
+              lastSessionDate: new Date(),
+            })
+          }
+        } catch (error) {
+          console.error('Failed to persist completed pomodoro session', error)
+          toast.error('Pomodoro completed, but it could not be synced.')
         }
       }
     }
