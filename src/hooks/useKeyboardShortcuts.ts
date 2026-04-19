@@ -5,7 +5,7 @@ interface ShortcutHandlers {
   onPlayPause: () => void
   onReset: () => void
   onSkip: () => void
-  onSwitchMode: (mode: 1 | 2 | 3) => void
+  onSwitchMode: (mode: 1 | 2 | 3 | 4) => void
 }
 
 export function useKeyboardShortcuts({ onPlayPause, onReset, onSkip, onSwitchMode }: ShortcutHandlers) {
@@ -34,6 +34,9 @@ export function useKeyboardShortcuts({ onPlayPause, onReset, onSkip, onSwitchMod
           break
         case 'Digit3':
           onSwitchMode(3)
+          break
+        case 'Digit4':
+          onSwitchMode(4)
           break
       }
     }

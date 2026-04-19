@@ -32,6 +32,7 @@ export function useTimer() {
         pomodoro: t.pomodoroDuration * 60,
         shortBreak: t.shortBreakDuration * 60,
         longBreak: t.longBreakDuration * 60,
+        hyperfocus: (t.hyperfocusDuration ?? 52) * 60,
       }
       return map[mode]
     },
@@ -76,7 +77,7 @@ export function useTimer() {
 
     const durationMinutes = Math.floor(getDuration(timer.mode) / 60)
 
-    if (timer.mode === 'pomodoro') {
+    if (timer.mode === 'pomodoro' || timer.mode === 'hyperfocus') {
       timer.incrementPomodoroCount()
       timer.incrementSessionCount()
 
@@ -166,14 +167,27 @@ export function useTimer() {
     // Determine next mode
     const longBreakInterval = settings.timer.longBreakInterval
     let nextMode: TimerMode = 'shortBreak'
-    if (timer.mode === 'pomodoro') {
+    let nextDuration: number
+
+    if (timer.mode === 'hyperfocus') {
+      // Hyperfocus → 17-min break, then back to hyperfocus
+      nextMode = 'shortBreak'
+      nextDuration = (settings.timer.hyperfocusBreakDuration ?? 17) * 60
+      timer.setFromHyperfocus(true)
+    } else if (timer.mode === 'pomodoro') {
       const newCount = timer.pomodoroCount + 1
       nextMode = newCount % longBreakInterval === 0 ? 'longBreak' : 'shortBreak'
+      nextDuration = getDuration(nextMode)
     } else {
-      nextMode = 'pomodoro'
+      // Break completed
+      if (timer.fromHyperfocus) {
+        nextMode = 'hyperfocus'
+        timer.setFromHyperfocus(false)
+      } else {
+        nextMode = 'pomodoro'
+      }
+      nextDuration = getDuration(nextMode)
     }
-
-    const nextDuration = getDuration(nextMode)
 
     // Auto-start logic
     const autoStart =
@@ -244,16 +258,27 @@ export function useTimer() {
     clearInterval_()
     stopTick()
     ambientMusic.stop()
-    const modes: TimerMode[] = ['pomodoro', 'shortBreak', 'longBreak']
-    const currentIdx = modes.indexOf(timer.mode)
-    const nextMode = modes[(currentIdx + 1) % modes.length]
-    timer.setMode(nextMode, getDuration(nextMode))
-  }, [timer, stopTick, getDuration])
+    if (timer.mode === 'hyperfocus') {
+      const breakDuration = (settings.timer.hyperfocusBreakDuration ?? 17) * 60
+      timer.setFromHyperfocus(true)
+      timer.setMode('shortBreak', breakDuration)
+    } else if (timer.fromHyperfocus) {
+      timer.setFromHyperfocus(false)
+      timer.setMode('hyperfocus', getDuration('hyperfocus'))
+    } else {
+      const modes: TimerMode[] = ['pomodoro', 'shortBreak', 'longBreak']
+      const currentIdx = modes.indexOf(timer.mode as 'pomodoro' | 'shortBreak' | 'longBreak')
+      const nextMode = modes[(currentIdx + 1) % modes.length]
+      timer.setMode(nextMode, getDuration(nextMode))
+    }
+  }, [timer, stopTick, getDuration, settings])
 
   const switchMode = useCallback(
     (mode: TimerMode) => {
       clearInterval_()
       stopTick()
+      ambientMusic.stop()
+      timer.setFromHyperfocus(false)
       timer.setMode(mode, getDuration(mode))
     },
     [timer, stopTick, getDuration],

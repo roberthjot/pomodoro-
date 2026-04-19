@@ -10,6 +10,7 @@ const MODES: { value: TimerMode; label: string }[] = [
   { value: 'pomodoro', label: 'Pomodoro' },
   { value: 'shortBreak', label: 'Short Break' },
   { value: 'longBreak', label: 'Long Break' },
+  { value: 'hyperfocus', label: '⚡ Hiperfoco' },
 ]
 
 export function TimerModeSwitcher({ mode, onSwitch }: Props) {

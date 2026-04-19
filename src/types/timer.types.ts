@@ -1,4 +1,4 @@
-export type TimerMode = 'pomodoro' | 'shortBreak' | 'longBreak'
+export type TimerMode = 'pomodoro' | 'shortBreak' | 'longBreak' | 'hyperfocus'
 export type TimerStatus = 'idle' | 'running' | 'paused' | 'finished'
 
 export interface TimerSettings {
@@ -8,4 +8,6 @@ export interface TimerSettings {
   longBreakInterval: number
   autoStartBreaks: boolean
   autoStartPomodoros: boolean
+  hyperfocusDuration: number
+  hyperfocusBreakDuration: number
 }

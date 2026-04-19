@@ -6,6 +6,8 @@ export const DEFAULT_TIMER = {
   longBreakInterval: 4,
   autoStartBreaks: false,
   autoStartPomodoros: false,
+  hyperfocusDuration: 52,
+  hyperfocusBreakDuration: 17,
 } as const
 
 // Default sound settings
@@ -61,6 +63,7 @@ export const SHORTCUTS = [
   { key: '1', description: 'Switch to Pomodoro' },
   { key: '2', description: 'Switch to Short Break' },
   { key: '3', description: 'Switch to Long Break' },
+  { key: '4', description: 'Switch to Hiperfoco' },
 ] as const
 
 // Accent color presets

@@ -10,6 +10,7 @@ interface TimerState {
   sessionCount: number
   activeTaskId: string | null
   startedAt: number | null
+  fromHyperfocus: boolean
 }
 
 interface TimerActions {
@@ -23,6 +24,7 @@ interface TimerActions {
   setActiveTaskId: (taskId: string | null) => void
   setStartedAt: (ts: number | null) => void
   resetTimer: (totalSeconds: number) => void
+  setFromHyperfocus: (v: boolean) => void
 }
 
 export const useTimerStore = create<TimerState & TimerActions>((set) => ({
@@ -34,6 +36,7 @@ export const useTimerStore = create<TimerState & TimerActions>((set) => ({
   sessionCount: 0,
   activeTaskId: null,
   startedAt: null,
+  fromHyperfocus: false,
 
   setMode: (mode, totalSeconds) =>
     set({ mode, secondsRemaining: totalSeconds, totalSeconds, status: 'idle', startedAt: null }),
@@ -56,4 +59,6 @@ export const useTimerStore = create<TimerState & TimerActions>((set) => ({
 
   resetTimer: (totalSeconds) =>
     set({ secondsRemaining: totalSeconds, totalSeconds, status: 'idle', startedAt: null }),
+
+  setFromHyperfocus: (fromHyperfocus) => set({ fromHyperfocus }),
 }))
