@@ -22,13 +22,15 @@ export function useNotifications() {
     return result
   }
 
-  const notifySessionEnd = (mode: 'pomodoro' | 'shortBreak' | 'longBreak') => {
-    if (!notifications.notifyOnSessionEnd && mode === 'pomodoro') return
-    if (!notifications.notifyOnBreakEnd && mode !== 'pomodoro') return
+  const notifySessionEnd = (mode: 'pomodoro' | 'shortBreak' | 'longBreak' | 'hyperfocus') => {
+    const isWork = mode === 'pomodoro' || mode === 'hyperfocus'
+    if (!notifications.notifyOnSessionEnd && isWork) return
+    if (!notifications.notifyOnBreakEnd && !isWork) return
     if (!notifications.browserNotifications) return
 
-    const messages = {
+    const messages: Record<string, { title: string; body: string }> = {
       pomodoro: { title: 'Pomodoro complete!', body: 'Time for a break.' },
+      hyperfocus: { title: '⚡ Hiperfoco completado!', body: 'Tómate 17 minutos de descanso.' },
       shortBreak: { title: 'Break over!', body: 'Ready to focus again?' },
       longBreak: { title: 'Long break over!', body: "Let's get back to work." },
     }
