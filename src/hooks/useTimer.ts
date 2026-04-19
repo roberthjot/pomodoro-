@@ -81,32 +81,34 @@ export function useTimer() {
       timer.incrementPomodoroCount()
       timer.incrementSessionCount()
 
-      // Increment task pomodoro count
-      const activeTask = taskStore.getActiveTask()
+      // Increment task pomodoro count — read fresh state to avoid stale closure
+      const activeTask = useTaskStore.getState().getActiveTask()
+      console.log('[timer] session complete — activeTask:', activeTask?.id, activeTask?.title, 'completedPomodoros:', activeTask?.completedPomodoros)
       if (activeTask) {
-        const nextCompletedPomodoros = activeTask.completedPomodoros + 1
+        const nextCompletedPomodoros = (activeTask.completedPomodoros ?? 0) + 1
+        const estimated = activeTask.estimatedPomodoros ?? 1
+        const isDone = nextCompletedPomodoros >= estimated
         const taskUpdates = {
           completedPomodoros: nextCompletedPomodoros,
-          status:
-            nextCompletedPomodoros >= activeTask.estimatedPomodoros
-              ? ('completed' as const)
-              : activeTask.status,
-          completedAt:
-            nextCompletedPomodoros >= activeTask.estimatedPomodoros ? new Date() : activeTask.completedAt,
-          isActiveTask:
-            nextCompletedPomodoros >= activeTask.estimatedPomodoros ? false : activeTask.isActiveTask,
+          status: isDone ? ('completed' as const) : activeTask.status,
+          completedAt: isDone ? new Date() : activeTask.completedAt,
+          isActiveTask: isDone ? false : activeTask.isActiveTask,
         }
 
-        taskStore.updateTask(activeTask.id, taskUpdates)
+        console.log('[timer] updating task:', taskUpdates)
+        useTaskStore.getState().updateTask(activeTask.id, taskUpdates)
 
-        if (user) {
+        const currentUser = useAuthStore.getState().user
+        if (currentUser) {
           try {
-            await persistTaskUpdate(user.uid, activeTask.id, taskUpdates)
+            await persistTaskUpdate(currentUser.uid, activeTask.id, taskUpdates)
           } catch (error) {
             console.error('Failed to persist task pomodoro progress', error)
             toast.error('Pomodoro completed, but task progress could not be synced.')
           }
         }
+      } else {
+        console.warn('[timer] no active task found — pomodoro not credited to any task')
       }
 
       // Save session to Firestore
