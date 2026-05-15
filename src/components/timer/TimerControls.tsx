@@ -19,12 +19,12 @@ export function TimerControls({ status, onStart, onPause, onResume, onReset, onS
   const ambientSound = useSettingsStore((s) => s.sound.ambientSound)
   const [muted, setMuted] = useState(() => ambientMusic.isMuted())
 
+  const isPlaying = ambientSound !== 'none'
+
   const handleToggleMute = () => {
     const nowMuted = ambientMusic.toggleMute()
     setMuted(nowMuted)
   }
-
-  const showMuteBtn = ambientSound !== 'none'
 
   return (
     <div className="flex items-center justify-center gap-3">
@@ -53,20 +53,18 @@ export function TimerControls({ status, onStart, onPause, onResume, onReset, onS
         <SkipForward size={18} />
       </Button>
 
-      {showMuteBtn && (
-        <button
-          onClick={handleToggleMute}
-          title={muted ? 'Activar música ambient' : 'Silenciar música ambient'}
-          className={cn(
-            'p-2 rounded-lg transition-all text-sm',
-            muted
-              ? 'text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300'
-              : 'text-accent hover:opacity-70',
-          )}
-        >
-          {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-        </button>
-      )}
+      <button
+        onClick={isPlaying ? handleToggleMute : undefined}
+        title={!isPlaying ? 'Activa un sonido ambient en Settings' : muted ? 'Activar sonido ambient' : 'Silenciar sonido ambient'}
+        className={cn(
+          'p-2 rounded-lg transition-all',
+          !isPlaying && 'opacity-30 cursor-default',
+          isPlaying && !muted && 'text-accent hover:opacity-70',
+          isPlaying && muted && 'text-neutral-400 hover:text-neutral-300',
+        )}
+      >
+        {muted || !isPlaying ? <VolumeX size={18} /> : <Volume2 size={18} />}
+      </button>
     </div>
   )
 }
