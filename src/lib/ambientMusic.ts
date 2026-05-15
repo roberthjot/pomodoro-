@@ -10,6 +10,7 @@ interface AmbientState {
 let audioCtx: AudioContext | null = null
 let current: AmbientState | null = null
 let previewTimeout: ReturnType<typeof setTimeout> | null = null
+let muted = false
 
 function getCtx(): AudioContext | null {
   if (!audioCtx) {
@@ -118,12 +119,26 @@ export const ambientMusic = {
     if (current) return // already playing
     const ctx = getCtx()
     if (!ctx) return
-    current = buildGraph(ctx, sound.ambientSound, sound.ambientVolume / 100)
+    current = buildGraph(ctx, sound.ambientSound, muted ? 0 : sound.ambientVolume / 100)
   },
 
   stop(): void {
     if (previewTimeout) { clearTimeout(previewTimeout); previewTimeout = null }
     stopInternal()
+  },
+
+  toggleMute(): boolean {
+    muted = !muted
+    if (current) {
+      const { sound } = useSettingsStore.getState()
+      const targetVol = muted ? 0 : sound.ambientVolume / 100
+      current.gainNode.gain.setTargetAtTime(targetVol, current.gainNode.context.currentTime, 0.1)
+    }
+    return muted
+  },
+
+  isMuted(): boolean {
+    return muted
   },
 
   preview(type: AmbientSound, onEnd?: () => void): void {
