@@ -24,7 +24,7 @@ export function TimerControls({ status, onStart, onPause, onResume, onReset, onS
     setMuted(nowMuted)
   }
 
-  const showMuteBtn = ambientSound !== 'none' && status === 'running'
+  const showMuteBtn = ambientSound !== 'none'
 
   return (
     <div className="flex items-center justify-center gap-3">
