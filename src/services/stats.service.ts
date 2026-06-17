@@ -76,6 +76,25 @@ export async function recordSession(
   return ref.id
 }
 
+export async function getRecentSessions(uid: string, count = 5): Promise<PomodoroSession[]> {
+  const q = query(sessionsRef(uid), orderBy('completedAt', 'desc'), limit(count))
+  const snap = await getDocs(q)
+  return snap.docs.map((d) => {
+    const data = d.data()
+    return {
+      id: d.id,
+      taskId: data.taskId ?? null,
+      taskTitle: data.taskTitle ?? null,
+      mode: data.mode,
+      durationMinutes: data.durationMinutes ?? 0,
+      startedAt: data.startedAt?.toDate?.() ?? new Date(),
+      completedAt: data.completedAt?.toDate?.() ?? new Date(),
+      wasInterrupted: data.wasInterrupted ?? false,
+      dateKey: data.dateKey ?? '',
+    } as PomodoroSession
+  })
+}
+
 export async function getDailyStats(uid: string, days = 30): Promise<DailyStats[]> {
   const q = query(dailyStatsRef(uid), orderBy('date', 'desc'), limit(days))
   const snap = await getDocs(q)

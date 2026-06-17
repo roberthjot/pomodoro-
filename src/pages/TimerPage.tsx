@@ -9,18 +9,11 @@ import { TimerControls } from '@components/timer/TimerControls'
 import { TimerModeSwitcher } from '@components/timer/TimerModeSwitcher'
 import { SessionCounter } from '@components/timer/SessionCounter'
 import { CurrentTaskBanner } from '@components/timer/CurrentTaskBanner'
-import { ShortcutsHint } from '@components/timer/ShortcutsHint'
 import { DailyFocusModal } from '@components/timer/DailyFocusModal'
 import { DailyFocusPanel } from '@components/timer/DailyFocusPanel'
 import { DayZoneIndicator } from '@components/timer/DayZoneIndicator'
+import { TodayRail } from '@components/timer/TodayRail'
 import type { TimerMode } from '@/types'
-
-const MODE_NAMES: Record<TimerMode, string> = {
-  pomodoro: 'Focus',
-  shortBreak: 'Short Break',
-  longBreak: 'Long Break',
-  hyperfocus: 'Hiperfoco',
-}
 
 export function TimerPage() {
   const timer = useTimer()
@@ -29,11 +22,10 @@ export function TimerPage() {
   const { isNewDay } = useDailyFocusStore()
   const [showDailyModal, setShowDailyModal] = useState(false)
 
-  // Show daily focus modal once per day on first visit
   useEffect(() => {
     if (isNewDay()) {
-      const timeout = setTimeout(() => setShowDailyModal(true), 600)
-      return () => clearTimeout(timeout)
+      const t = setTimeout(() => setShowDailyModal(true), 600)
+      return () => clearTimeout(t)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -59,46 +51,54 @@ export function TimerPage() {
   })
 
   return (
-    <div className="flex flex-col items-center gap-5 py-4 animate-fade-in">
-      <div className="flex items-center gap-3">
+    <div className="flex justify-center gap-10 animate-fade-in">
+      {/* Center column */}
+      <div className="flex flex-col items-center gap-5 w-full max-w-md">
         <TimerModeSwitcher mode={timer.mode} onSwitch={timer.switchMode} />
+
+        <DayZoneIndicator />
+
+        <TimerDisplay
+          timeDisplay={timer.timeDisplay}
+          progress={timer.progress}
+          status={timer.status}
+          mode={timer.mode}
+        />
+
+        <SessionCounter
+          count={timer.pomodoroCount}
+          interval={timerSettings.longBreakInterval}
+          mode={timer.mode}
+        />
+
+        <div className="w-full max-w-sm">
+          <CurrentTaskBanner
+            task={activeTask}
+            tasks={tasks}
+            mode={timer.mode}
+            onSelectTask={setActiveTask}
+          />
+        </div>
+
+        <TimerControls
+          status={timer.status}
+          mode={timer.mode}
+          onStart={timer.start}
+          onPause={timer.pause}
+          onResume={timer.resume}
+          onReset={timer.reset}
+          onSkip={timer.skip}
+        />
+
+        <DailyFocusPanel onReset={() => setShowDailyModal(true)} />
       </div>
 
-      <DayZoneIndicator />
-
-      <TimerDisplay
-        timeDisplay={timer.timeDisplay}
-        progress={timer.progress}
-        status={timer.status}
-        modeName={MODE_NAMES[timer.mode]}
-      />
-
-      <SessionCounter
-        count={timer.pomodoroCount}
-        interval={timerSettings.longBreakInterval}
-      />
-
-      <div className="w-full max-w-sm">
-        <CurrentTaskBanner task={activeTask} tasks={tasks} onSelectTask={setActiveTask} />
+      {/* Right rail (desktop) */}
+      <div className="hidden xl:block pt-1">
+        <TodayRail mode={timer.mode} />
       </div>
 
-      <TimerControls
-        status={timer.status}
-        onStart={timer.start}
-        onPause={timer.pause}
-        onResume={timer.resume}
-        onReset={timer.reset}
-        onSkip={timer.skip}
-      />
-
-      <DailyFocusPanel onReset={() => setShowDailyModal(true)} />
-
-      <ShortcutsHint />
-
-      <DailyFocusModal
-        isOpen={showDailyModal}
-        onClose={() => setShowDailyModal(false)}
-      />
+      <DailyFocusModal isOpen={showDailyModal} onClose={() => setShowDailyModal(false)} />
     </div>
   )
 }
