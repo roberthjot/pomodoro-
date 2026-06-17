@@ -8,10 +8,10 @@ export function EmptyTaskState({ onAdd }: { onAdd: () => void }) {
         <CheckSquare size={28} className="text-neutral-400" />
       </div>
       <div>
-        <p className="font-medium text-neutral-700 dark:text-neutral-300">No tasks yet</p>
-        <p className="text-sm text-neutral-400 mt-1">Add a task to track your pomodoros</p>
+        <p className="font-medium text-neutral-700 dark:text-neutral-300">Aún no hay tareas</p>
+        <p className="text-sm text-neutral-400 mt-1">Agrega una tarea para registrar tus pomodoros</p>
       </div>
-      <Button onClick={onAdd} size="sm">Add your first task</Button>
+      <Button onClick={onAdd} size="sm">Agrega tu primera tarea</Button>
     </div>
   )
 }

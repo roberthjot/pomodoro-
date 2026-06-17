@@ -1,92 +1,100 @@
 import { useStats } from '@hooks/useStats'
-import { StatCard } from '@components/stats/StatCard'
-import { DailyChart } from '@components/stats/DailyChart'
-import { WeeklyChart } from '@components/stats/WeeklyChart'
-import { StreakDisplay } from '@components/stats/StreakDisplay'
-import { ProductivityScore } from '@components/stats/ProductivityScore'
+import { DailyBars } from '@components/stats/DailyBars'
 import { Skeleton } from '@components/ui/Skeleton'
-import { formatMinutes } from '@lib/utils'
-import { Timer, Target, Clock, Flame } from 'lucide-react'
 
-function formatDuration(minutes: number): string {
-  if (minutes === 0) return '0m'
-  if (minutes < 60) return `${minutes}m`
+function formatFocus(minutes: number): string {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
-  return m > 0 ? `${h}h ${m}m` : `${h}h`
+  if (h === 0) return `${m}m`
+  return m > 0 ? `${h}h${m}` : `${h}h`
 }
+
+function scoreLabel(score: number): string {
+  if (score >= 70) return 'Productividad alta'
+  if (score >= 40) return 'Productividad media'
+  return 'Sigue sumando'
+}
+
+const card =
+  'rounded-2xl bg-white dark:bg-[#121826] border border-neutral-200/80 dark:border-[#1f2836] shadow-[0_1px_3px_rgba(17,24,39,0.06)] dark:shadow-[0_1px_2px_rgba(0,0,0,0.4)]'
+const sectionLabel = 'text-[11px] font-bold uppercase tracking-[0.1em] text-neutral-400 dark:text-[#5d6675]'
 
 export function StatsPage() {
   const stats = useStats()
 
-  const todayKey = new Date().toISOString().split('T')[0]
-  const today = stats.dailyStats.find((s) => s.dateKey === todayKey)
-  const todayPomodoros = today?.pomodorosCompleted ?? 0
-  const todayMinutes = today?.focusMinutes ?? 0
+  const weekPomodoros = stats.weeklyData.reduce((sum, d) => sum + d.pomodoros, 0)
+  const weekFocus = stats.weeklyData.reduce((sum, d) => sum + d.focusMinutes, 0)
+  const score = stats.productivityScore
+
+  const ringCircumference = 2 * Math.PI * 42
+  const dashoffset = ringCircumference * (1 - score / 100)
 
   if (stats.isLoading) {
     return (
-      <div className="flex flex-col gap-4 animate-fade-in">
-        <Skeleton className="h-8 w-32" />
-        <Skeleton className="h-28 w-full" />
-        <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />)}
+      <div className="max-w-[760px] mx-auto flex flex-col gap-4 animate-fade-in">
+        <Skeleton className="h-8 w-40" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-28" />)}
         </div>
-        <Skeleton className="h-52" />
-        <Skeleton className="h-52" />
+        <Skeleton className="h-64" />
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col gap-4 animate-fade-in">
-      <h1 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">Statistics</h1>
+    <div className="max-w-[760px] mx-auto flex flex-col gap-5 animate-fade-in">
+      <div>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-neutral-900 dark:text-[#f3f4f7]">Estadísticas</h1>
+        <p className="text-sm text-neutral-400 dark:text-[#5d6675] mt-0.5">Tu semana de enfoque</p>
+      </div>
 
-      {/* Today summary */}
-      <div className="rounded-2xl border border-accent/20 bg-accent/5 dark:bg-accent/10 p-4 flex flex-col gap-3">
-        <p className="text-xs font-semibold text-accent uppercase tracking-wide">Today</p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-accent/15 flex items-center justify-center shrink-0">
-              <Clock size={16} className="text-accent" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">{formatDuration(todayMinutes)}</p>
-              <p className="text-xs text-neutral-400">focus time</p>
+      {/* Top grid */}
+      <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr_1fr] gap-3">
+        {/* Score card */}
+        <div className={`${card} p-5 flex items-center gap-4`}>
+          <div className="relative shrink-0" style={{ width: 96, height: 96 }}>
+            <svg width="96" height="96" className="rotate-[-90deg]">
+              <defs>
+                <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#ef4444" />
+                  <stop offset="100%" stopColor="#f97316" />
+                </linearGradient>
+              </defs>
+              <circle cx="48" cy="48" r="42" fill="none" strokeWidth="8" className="stroke-neutral-100 dark:stroke-[#1c2533]" />
+              <circle
+                cx="48" cy="48" r="42" fill="none" stroke="url(#scoreGrad)" strokeWidth="8" strokeLinecap="round"
+                strokeDasharray={ringCircumference} strokeDashoffset={dashoffset}
+                style={{ transition: 'stroke-dashoffset 0.8s ease' }}
+              />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-2xl font-mono font-bold text-neutral-900 dark:text-[#f3f4f7]">{score}</span>
+              <span className="text-[10px] uppercase tracking-wide text-neutral-400 dark:text-[#5d6675]">score</span>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
-              <Flame size={16} className="text-orange-500" />
-            </div>
-            <div>
-              <p className="text-lg font-bold text-neutral-900 dark:text-neutral-100">{todayPomodoros}</p>
-              <p className="text-xs text-neutral-400">pomodoros</p>
-            </div>
+          <div>
+            <p className="font-semibold text-neutral-900 dark:text-[#f3f4f7]">{scoreLabel(score)}</p>
+            <p className="text-sm text-neutral-400 dark:text-[#5d6675] mt-1">Tu ritmo de esta semana de enfoque.</p>
           </div>
+        </div>
+
+        {/* KPI: Foco total */}
+        <div className={`${card} p-5 flex flex-col justify-center`}>
+          <p className={sectionLabel}>Foco total</p>
+          <p className="text-3xl font-mono font-bold text-neutral-900 dark:text-[#f3f4f7] mt-2">{formatFocus(weekFocus)}</p>
+          <p className="text-xs text-green-500 mt-1">esta semana</p>
+        </div>
+
+        {/* KPI: Pomodoros */}
+        <div className={`${card} p-5 flex flex-col justify-center`}>
+          <p className={sectionLabel}>Pomodoros</p>
+          <p className="text-3xl font-mono font-bold text-neutral-900 dark:text-[#f3f4f7] mt-2">{weekPomodoros}</p>
+          <p className="text-xs text-neutral-400 dark:text-[#5d6675] mt-1">en 7 días</p>
         </div>
       </div>
 
-      {/* All time grid */}
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          label="Total Sessions"
-          value={stats.totalSessions}
-          subtitle="all time"
-          icon={<Target size={16} />}
-        />
-        <StatCard
-          label="Focus Time"
-          value={formatMinutes(stats.totalFocusMinutes)}
-          subtitle="all time"
-          icon={<Timer size={16} />}
-        />
-        <StreakDisplay current={stats.currentStreak} longest={stats.longestStreak} />
-        <ProductivityScore score={stats.productivityScore} />
-      </div>
-
-      <DailyChart data={stats.weeklyData} />
-      <WeeklyChart data={stats.monthlyData} />
+      {/* Bar chart */}
+      <DailyBars dailyStats={stats.dailyStats} />
     </div>
   )
 }

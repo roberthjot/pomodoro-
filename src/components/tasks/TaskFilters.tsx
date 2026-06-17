@@ -10,11 +10,11 @@ interface Props {
 }
 
 const STATUS_TABS: { value: FilterStatus; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'active', label: 'Active' },
-  { value: 'completed', label: 'Done' },
-  { value: 'today', label: 'Today' },
-  { value: 'overdue', label: 'Overdue' },
+  { value: 'all', label: 'Todas' },
+  { value: 'active', label: 'Activas' },
+  { value: 'completed', label: 'Hechas' },
+  { value: 'today', label: 'Hoy' },
+  { value: 'overdue', label: 'Atrasadas' },
 ]
 
 export function TaskFilters({ filter, onFilter }: Props) {
@@ -44,7 +44,7 @@ export function TaskFilters({ filter, onFilter }: Props) {
         <input
           value={filter.searchQuery}
           onChange={(e) => onFilter({ searchQuery: e.target.value })}
-          placeholder="Search tasks..."
+          placeholder="Buscar tareas..."
           className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
         />
       </div>
