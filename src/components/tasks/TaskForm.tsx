@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { Modal } from '@components/ui/Modal'
-import { Input } from '@components/ui/Input'
 import { Button } from '@components/ui/Button'
-import { Slider } from '@components/ui/Slider'
 import { useSettingsStore } from '@stores/settingsStore'
 import type { Task, CreateTaskInput, Project } from '@/types'
 import { ACCENT_COLORS } from '@config/constants'
@@ -77,88 +75,98 @@ export function TaskForm({ isOpen, onClose, onSubmit, initialData, projects }: P
     }
   }
 
+  const inputClass =
+    'w-full rounded-xl border border-neutral-200 dark:border-[#1f2836] bg-white dark:bg-[#0f1420] px-3 py-2.5 text-sm text-neutral-900 dark:text-[#f3f4f7] placeholder:text-neutral-400 dark:placeholder:text-[#5d6675] focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent/40 transition-all'
+  const labelClass = 'text-sm font-medium text-neutral-700 dark:text-[#9aa3b2]'
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? 'Edit Task' : 'New Task'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={initialData ? 'Editar tarea' : 'Nueva tarea'}>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <Input label="Task title" value={title} onChange={(e) => setTitle(e.target.value)} required placeholder="What are you working on?" />
+        <div className="flex flex-col gap-1.5">
+          <label className={labelClass}>Título</label>
+          <input value={title} onChange={(e) => setTitle(e.target.value)} required autoFocus placeholder="¿En qué vas a trabajar?" className={inputClass} />
+        </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Notes</label>
+          <label className={labelClass}>Notas <span className="text-neutral-400 dark:text-[#5d6675] font-normal">(opcional)</span></label>
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            placeholder="Optional notes..."
-            rows={3}
-            className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none transition-all"
+            placeholder="Agrega detalles…"
+            rows={2}
+            className={`${inputClass} resize-none`}
           />
         </div>
 
-        <div className="flex flex-col gap-1">
-          <Slider label="Estimated pomodoros" value={estimated} min={1} max={20} onChange={setEstimated} />
-          <p className="text-xs text-neutral-400 text-right">
-            {estimated} 🍅 · ~{formatDuration(estimated * pomodoroDuration)}
-          </p>
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <label className={labelClass}>Pomodoros estimados</label>
+            <span className="text-sm font-mono text-accent">
+              {estimated} · ~{formatDuration(estimated * pomodoroDuration)}
+            </span>
+          </div>
+          <input
+            type="range"
+            min={1}
+            max={20}
+            step={1}
+            value={estimated}
+            onChange={(e) => setEstimated(Number(e.target.value))}
+            className="w-full h-2 rounded-full appearance-none cursor-pointer bg-neutral-200 dark:bg-[#1c2533] [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-accent [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:shadow-md"
+          />
         </div>
 
-        {/* Project selector */}
-        {projects.length > 0 && (
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Project</label>
-            <div className="flex flex-wrap gap-2">
+        {/* Project selector — clean list style */}
+        <div className="flex flex-col gap-2">
+          <label className={labelClass}>Proyecto</label>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              onClick={() => setProjectId(null)}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                !projectId
+                  ? 'bg-accent/10 text-accent'
+                  : 'text-neutral-500 dark:text-[#9aa3b2] bg-neutral-100 dark:bg-[#0f1420] hover:bg-neutral-200 dark:hover:bg-[#1c2533]'
+              }`}
+            >
+              Ninguno
+            </button>
+            {projects.map((p) => (
               <button
+                key={p.id}
                 type="button"
-                onClick={() => setProjectId(null)}
-                className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
-                  !projectId
-                    ? 'border-accent bg-accent/10 text-accent'
-                    : 'border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:border-neutral-400'
+                onClick={() => setProjectId(p.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  projectId === p.id
+                    ? 'bg-accent/10 text-accent'
+                    : 'text-neutral-600 dark:text-[#9aa3b2] bg-neutral-100 dark:bg-[#0f1420] hover:bg-neutral-200 dark:hover:bg-[#1c2533]'
                 }`}
               >
-                None
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
+                {p.name}
               </button>
-              {projects.map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => setProjectId(p.id)}
-                  className={`px-3 py-1 rounded-lg text-xs font-medium border transition-all ${
-                    projectId === p.id ? 'text-white' : 'text-neutral-700 dark:text-neutral-300'
-                  }`}
-                  style={{
-                    borderColor: p.color,
-                    backgroundColor: projectId === p.id ? p.color : 'transparent',
-                  }}
-                >
-                  {p.name}
-                </button>
-              ))}
-            </div>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Due date */}
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Due date</label>
-          <input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-full rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
-          />
+          <label className={labelClass}>Fecha límite <span className="text-neutral-400 dark:text-[#5d6675] font-normal">(opcional)</span></label>
+          <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className={`${inputClass} [color-scheme:dark]`} />
         </div>
 
         {/* Tags */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Tags</label>
+          <label className={labelClass}>Etiquetas <span className="text-neutral-400 dark:text-[#5d6675] font-normal">(opcional)</span></label>
           <div className="flex gap-2">
             <input
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-              placeholder="Add tag..."
-              className="flex-1 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+              placeholder="Agregar etiqueta…"
+              className={inputClass}
             />
-            <Button type="button" variant="secondary" size="sm" onClick={addTag}>Add</Button>
+            <Button type="button" variant="secondary" size="sm" onClick={addTag}>Añadir</Button>
           </div>
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-1.5">
@@ -177,8 +185,8 @@ export function TaskForm({ isOpen, onClose, onSubmit, initialData, projects }: P
         </div>
 
         <div className="flex gap-3 justify-end pt-2">
-          <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
-          <Button type="submit" loading={loading}>{initialData ? 'Save' : 'Create Task'}</Button>
+          <Button type="button" variant="secondary" onClick={onClose}>Cancelar</Button>
+          <Button type="submit" loading={loading}>{initialData ? 'Guardar' : 'Crear tarea'}</Button>
         </div>
       </form>
     </Modal>
