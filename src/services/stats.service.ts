@@ -6,6 +6,7 @@ import {
   setDoc,
   addDoc,
   query,
+  where,
   orderBy,
   limit,
   serverTimestamp,
@@ -93,6 +94,26 @@ export async function getRecentSessions(uid: string, count = 5): Promise<Pomodor
       dateKey: data.dateKey ?? '',
     } as PomodoroSession
   })
+}
+
+export async function getSessionsForDay(uid: string, dateKey: string): Promise<PomodoroSession[]> {
+  const q = query(sessionsRef(uid), where('dateKey', '==', dateKey))
+  const snap = await getDocs(q)
+  const sessions = snap.docs.map((d) => {
+    const data = d.data()
+    return {
+      id: d.id,
+      taskId: data.taskId ?? null,
+      taskTitle: data.taskTitle ?? null,
+      mode: data.mode,
+      durationMinutes: data.durationMinutes ?? 0,
+      startedAt: data.startedAt?.toDate?.() ?? new Date(),
+      completedAt: data.completedAt?.toDate?.() ?? new Date(),
+      wasInterrupted: data.wasInterrupted ?? false,
+      dateKey: data.dateKey ?? '',
+    } as PomodoroSession
+  })
+  return sessions.sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())
 }
 
 export async function getDailyStats(uid: string, days = 30): Promise<DailyStats[]> {

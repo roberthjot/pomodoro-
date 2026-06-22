@@ -2,6 +2,9 @@ import { useStats } from '@hooks/useStats'
 import { DailyBars } from '@components/stats/DailyBars'
 import { DailyRings } from '@components/stats/DailyRings'
 import { YearHeatmap } from '@components/stats/YearHeatmap'
+import { DayTimeline } from '@components/stats/DayTimeline'
+import { MonthCalendar } from '@components/stats/MonthCalendar'
+import { DailySummaryCard } from '@components/stats/DailySummaryCard'
 import { Skeleton } from '@components/ui/Skeleton'
 import { DAILY_TARGET_POMODOROS } from '@config/constants'
 import { todayKey } from '@lib/dateUtils'
@@ -99,7 +102,15 @@ export function StatsPage() {
         </div>
       </div>
 
-      {/* Daily rings */}
+      {/* Shareable daily summary */}
+      <DailySummaryCard
+        pomodoros={today?.pomodorosCompleted ?? 0}
+        focusMinutes={today?.focusMinutes ?? 0}
+        tasksCompleted={today?.tasksCompleted ?? 0}
+        streak={stats.currentStreak}
+      />
+
+      {/* Daily rings + day timeline */}
       <DailyRings
         pomodoros={today?.pomodorosCompleted ?? 0}
         focusMinutes={today?.focusMinutes ?? 0}
@@ -107,8 +118,13 @@ export function StatsPage() {
         pomodoroTarget={DAILY_TARGET_POMODOROS}
       />
 
+      <DayTimeline />
+
       {/* Bar chart */}
       <DailyBars dailyStats={stats.dailyStats} />
+
+      {/* Month calendar */}
+      <MonthCalendar dailyStats={stats.dailyStats} />
 
       {/* Year heatmap */}
       <YearHeatmap dailyStats={stats.dailyStats} />
