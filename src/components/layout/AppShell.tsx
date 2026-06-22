@@ -1,8 +1,31 @@
+import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Flame } from 'lucide-react'
 import { Sidebar } from './Sidebar'
 import { BottomNav } from './BottomNav'
 import { useAuthStore } from '@stores/authStore'
+
+/** Subtle ambient glow tinted by time of day. */
+function timeTint(hour: number): string {
+  if (hour >= 5 && hour < 12) return '#f9731633' // morning — warm amber
+  if (hour >= 12 && hour < 18) return '#3b82f633' // afternoon — daylight blue
+  if (hour >= 18 && hour < 22) return '#8b5cf633' // evening — violet
+  return '#6366f133' // night — indigo
+}
+
+function AmbientBackground() {
+  const [tint, setTint] = useState(() => timeTint(new Date().getHours()))
+  useEffect(() => {
+    const id = setInterval(() => setTint(timeTint(new Date().getHours())), 5 * 60 * 1000)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <div
+      className="pointer-events-none fixed inset-x-0 top-0 h-72 -z-0 opacity-60 transition-[background] duration-1000"
+      style={{ background: `radial-gradient(120% 100% at 50% 0%, ${tint} 0%, transparent 70%)` }}
+    />
+  )
+}
 
 function MobileHeader() {
   const { userProfile } = useAuthStore()
@@ -28,10 +51,11 @@ function MobileHeader() {
 
 export function AppShell() {
   return (
-    <div className="flex h-screen bg-[#f5f6f8] dark:bg-[#0a0e17] overflow-hidden">
+    <div className="relative flex h-screen bg-[#f5f6f8] dark:bg-[#0a0e17] overflow-hidden">
+      <AmbientBackground />
       <Sidebar />
 
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative z-10">
         <MobileHeader />
         <main className="flex-1 overflow-y-auto">
           <div className="px-5 py-6 md:px-11 md:py-10 pb-24 md:pb-10">

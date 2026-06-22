@@ -1,6 +1,10 @@
 import { useStats } from '@hooks/useStats'
 import { DailyBars } from '@components/stats/DailyBars'
+import { DailyRings } from '@components/stats/DailyRings'
+import { YearHeatmap } from '@components/stats/YearHeatmap'
 import { Skeleton } from '@components/ui/Skeleton'
+import { DAILY_TARGET_POMODOROS } from '@config/constants'
+import { todayKey } from '@lib/dateUtils'
 
 function formatFocus(minutes: number): string {
   const h = Math.floor(minutes / 60)
@@ -25,6 +29,8 @@ export function StatsPage() {
   const weekPomodoros = stats.weeklyData.reduce((sum, d) => sum + d.pomodoros, 0)
   const weekFocus = stats.weeklyData.reduce((sum, d) => sum + d.focusMinutes, 0)
   const score = stats.productivityScore
+
+  const today = stats.dailyStats.find((s) => s.dateKey === todayKey())
 
   const ringCircumference = 2 * Math.PI * 42
   const dashoffset = ringCircumference * (1 - score / 100)
@@ -93,8 +99,19 @@ export function StatsPage() {
         </div>
       </div>
 
+      {/* Daily rings */}
+      <DailyRings
+        pomodoros={today?.pomodorosCompleted ?? 0}
+        focusMinutes={today?.focusMinutes ?? 0}
+        tasksCompleted={today?.tasksCompleted ?? 0}
+        pomodoroTarget={DAILY_TARGET_POMODOROS}
+      />
+
       {/* Bar chart */}
       <DailyBars dailyStats={stats.dailyStats} />
+
+      {/* Year heatmap */}
+      <YearHeatmap dailyStats={stats.dailyStats} />
     </div>
   )
 }

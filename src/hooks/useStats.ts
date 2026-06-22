@@ -13,7 +13,7 @@ export function useStats() {
   useEffect(() => {
     if (!user) return
     store.setLoading(true)
-    getDailyStats(user.uid, 90).then((stats) => {
+    getDailyStats(user.uid, 365).then((stats) => {
       store.setDailyStats(stats)
       store.setLoading(false)
 
