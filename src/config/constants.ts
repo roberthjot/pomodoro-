@@ -66,6 +66,16 @@ export const SHORTCUTS = [
   { key: '4', description: 'Switch to Hiperfoco' },
 ] as const
 
+// Full color theme presets (name + accent + gradient preview)
+export const COLOR_THEMES = [
+  { name: 'Tomate', accent: '#ef4444', from: '#ef4444', to: '#f97316' },
+  { name: 'Océano', accent: '#3b82f6', from: '#3b82f6', to: '#06b6d4' },
+  { name: 'Bosque', accent: '#22c55e', from: '#22c55e', to: '#14b8a6' },
+  { name: 'Atardecer', accent: '#f59e0b', from: '#f59e0b', to: '#ec4899' },
+  { name: 'Lavanda', accent: '#8b5cf6', from: '#8b5cf6', to: '#d946ef' },
+  { name: 'Rosa', accent: '#ec4899', from: '#ec4899', to: '#f43f5e' },
+] as const
+
 // Accent color presets
 export const ACCENT_COLORS = [
   { label: 'Red', value: '#ef4444' },

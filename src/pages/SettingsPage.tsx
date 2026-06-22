@@ -7,7 +7,7 @@ import { Toggle } from '@components/ui/Toggle'
 import { Select } from '@components/ui/Select'
 import { Avatar } from '@components/ui/Avatar'
 import { ConfirmDialog } from '@components/ui/ConfirmDialog'
-import { ACCENT_COLORS, AMBIENT_OPTIONS } from '@config/constants'
+import { AMBIENT_OPTIONS, COLOR_THEMES } from '@config/constants'
 import { ambientMusic } from '@lib/ambientMusic'
 import { getModeAccent } from '@lib/modeAccent'
 import { cn } from '@lib/utils'
@@ -80,26 +80,28 @@ export function SettingsPage() {
       <div className="flex flex-col gap-2">
         <p className={sectionLabel}>Apariencia</p>
         <div className={`${card} p-5 flex flex-col gap-4`}>
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-col gap-3">
             <div>
-              <p className="text-sm font-medium text-neutral-800 dark:text-[#f3f4f7]">Color de acento</p>
+              <p className="text-sm font-medium text-neutral-800 dark:text-[#f3f4f7]">Tema de color</p>
               <p className="text-xs text-neutral-400 dark:text-[#5d6675] mt-0.5">Define el color del temporizador y los gráficos</p>
             </div>
-            <div className="flex gap-2.5">
-              {ACCENT_COLORS.slice(0, 5).map(({ value, label }) => (
-                <button
-                  key={value}
-                  title={label}
-                  onClick={() => updateAppearanceSettings({ accentColor: value })}
-                  className="w-[30px] h-[30px] rounded-xl transition-transform hover:scale-105"
-                  style={{
-                    backgroundColor: value,
-                    boxShadow: settings.appearance.accentColor === value
-                      ? `0 0 0 2px var(--tw-surface, #fff), 0 0 0 4px ${value}`
-                      : undefined,
-                  }}
-                />
-              ))}
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+              {COLOR_THEMES.map((t) => {
+                const active = settings.appearance.accentColor.toLowerCase() === t.accent.toLowerCase()
+                return (
+                  <button
+                    key={t.name}
+                    onClick={() => updateAppearanceSettings({ accentColor: t.accent })}
+                    className={cn(
+                      'flex flex-col items-center gap-1.5 p-2.5 rounded-xl border transition-all',
+                      active ? 'border-accent bg-accent/[0.06] dark:bg-accent/10' : 'border-neutral-200/70 dark:border-[#1f2836] hover:border-neutral-300 dark:hover:border-[#2a3645]',
+                    )}
+                  >
+                    <span className="w-8 h-8 rounded-full" style={{ background: `linear-gradient(135deg, ${t.from}, ${t.to})` }} />
+                    <span className="text-xs font-medium text-neutral-600 dark:text-[#9aa3b2]">{t.name}</span>
+                  </button>
+                )
+              })}
             </div>
           </div>
           <div className={divider} />

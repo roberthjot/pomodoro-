@@ -5,6 +5,8 @@ import { YearHeatmap } from '@components/stats/YearHeatmap'
 import { DayTimeline } from '@components/stats/DayTimeline'
 import { MonthCalendar } from '@components/stats/MonthCalendar'
 import { DailySummaryCard } from '@components/stats/DailySummaryCard'
+import { StreakPlant } from '@components/stats/StreakPlant'
+import { Achievements } from '@components/stats/Achievements'
 import { Skeleton } from '@components/ui/Skeleton'
 import { DAILY_TARGET_POMODOROS } from '@config/constants'
 import { todayKey } from '@lib/dateUtils'
@@ -123,11 +125,22 @@ export function StatsPage() {
       {/* Bar chart */}
       <DailyBars dailyStats={stats.dailyStats} />
 
+      {/* Streak plant */}
+      <StreakPlant streak={stats.currentStreak} />
+
       {/* Month calendar */}
       <MonthCalendar dailyStats={stats.dailyStats} />
 
       {/* Year heatmap */}
       <YearHeatmap dailyStats={stats.dailyStats} />
+
+      {/* Achievements */}
+      <Achievements
+        totalPomodoros={stats.totalSessions}
+        totalFocusMinutes={stats.totalFocusMinutes}
+        currentStreak={stats.currentStreak}
+        longestStreak={stats.longestStreak}
+      />
     </div>
   )
 }
