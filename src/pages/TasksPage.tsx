@@ -136,17 +136,17 @@ export function TasksPage() {
         {/* Main column */}
         <div className="flex-1 min-w-0 flex flex-col gap-4">
           {/* Mobile project chips */}
-          <div className="md:hidden flex gap-2 overflow-x-auto scrollbar-none -mx-1 px-1">
-            <button onClick={() => handleProjectFilter(null)} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap border transition-all', !activeProjectId ? 'border-accent bg-accent/10 text-accent' : 'border-neutral-200 dark:border-[#1f2836] text-neutral-500')}>
+          <div className="md:hidden flex gap-1.5 overflow-x-auto scrollbar-none -mx-1 px-1">
+            <button onClick={() => handleProjectFilter(null)} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all', !activeProjectId ? 'bg-accent/10 text-accent' : 'text-neutral-500 dark:text-[#9aa3b2] bg-neutral-100 dark:bg-[#0f1420]')}>
               <Folder size={13} /> Todas
             </button>
             {projects.map((p) => (
-              <button key={p.id} onClick={() => handleProjectFilter(activeProjectId === p.id ? null : p.id)} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap border transition-all', activeProjectId === p.id ? 'text-white' : 'text-neutral-600 dark:text-[#9aa3b2] border-neutral-200 dark:border-[#1f2836]')} style={{ borderColor: p.color, backgroundColor: activeProjectId === p.id ? p.color : undefined }}>
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: activeProjectId === p.id ? '#fff' : p.color }} />
+              <button key={p.id} onClick={() => handleProjectFilter(activeProjectId === p.id ? null : p.id)} className={cn('flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all', activeProjectId === p.id ? 'bg-accent/10 text-accent' : 'text-neutral-600 dark:text-[#9aa3b2] bg-neutral-100 dark:bg-[#0f1420]')}>
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: p.color }} />
                 {p.name}
               </button>
             ))}
-            <button onClick={() => setShowProjectForm(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-neutral-400 border border-dashed border-neutral-300 dark:border-[#2a3645] whitespace-nowrap">
+            <button onClick={() => setShowProjectForm(true)} className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm text-neutral-400 dark:text-[#5d6675] whitespace-nowrap">
               <Plus size={13} /> Nuevo
             </button>
           </div>
