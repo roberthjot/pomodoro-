@@ -13,6 +13,7 @@ import { DailyFocusModal } from '@components/timer/DailyFocusModal'
 import { DailyFocusPanel } from '@components/timer/DailyFocusPanel'
 import { DayZoneIndicator } from '@components/timer/DayZoneIndicator'
 import { TodayRail } from '@components/timer/TodayRail'
+import { ConfirmDialog } from '@components/ui/ConfirmDialog'
 import type { TimerMode } from '@/types'
 
 export function TimerPage() {
@@ -21,6 +22,7 @@ export function TimerPage() {
   const { timer: timerSettings } = useSettingsStore()
   const { isNewDay } = useDailyFocusStore()
   const [showDailyModal, setShowDailyModal] = useState(false)
+  const [pendingMode, setPendingMode] = useState<TimerMode | null>(null)
 
   useEffect(() => {
     if (isNewDay()) {
@@ -28,6 +30,20 @@ export function TimerPage() {
       return () => clearTimeout(t)
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Switch mode, but confirm first if a session is in progress (so a running
+  // pomodoro isn't lost by accidentally tapping a mode tab).
+  const requestSwitchMode = useCallback(
+    (mode: TimerMode) => {
+      if (mode === timer.mode) return
+      const inProgress =
+        timer.status === 'running' ||
+        (timer.status === 'paused' && timer.secondsRemaining > 0)
+      if (inProgress) setPendingMode(mode)
+      else timer.switchMode(mode)
+    },
+    [timer],
+  )
 
   const handlePlayPause = useCallback(() => {
     if (timer.status === 'idle' || timer.status === 'finished') timer.start()
@@ -38,9 +54,9 @@ export function TimerPage() {
   const handleSwitchMode = useCallback(
     (num: 1 | 2 | 3 | 4) => {
       const modes: TimerMode[] = ['pomodoro', 'shortBreak', 'longBreak', 'hyperfocus']
-      timer.switchMode(modes[num - 1])
+      requestSwitchMode(modes[num - 1])
     },
-    [timer],
+    [requestSwitchMode],
   )
 
   useKeyboardShortcuts({
@@ -54,7 +70,7 @@ export function TimerPage() {
     <div className="flex justify-center gap-10 animate-fade-in">
       {/* Center column */}
       <div className="flex flex-col items-center gap-5 w-full max-w-md">
-        <TimerModeSwitcher mode={timer.mode} onSwitch={timer.switchMode} />
+        <TimerModeSwitcher mode={timer.mode} onSwitch={requestSwitchMode} />
 
         <DayZoneIndicator />
 
@@ -99,6 +115,15 @@ export function TimerPage() {
       </div>
 
       <DailyFocusModal isOpen={showDailyModal} onClose={() => setShowDailyModal(false)} />
+
+      <ConfirmDialog
+        isOpen={pendingMode !== null}
+        onClose={() => setPendingMode(null)}
+        onConfirm={() => { if (pendingMode) timer.switchMode(pendingMode); setPendingMode(null) }}
+        title="¿Cambiar de modo?"
+        message="Tienes una sesión en curso. Si cambias de modo, el temporizador actual se reiniciará."
+        confirmLabel="Cambiar"
+      />
     </div>
   )
 }
