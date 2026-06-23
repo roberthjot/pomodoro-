@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { TimerMode, TimerStatus } from '@/types'
 
 interface TimerState {
@@ -27,38 +28,55 @@ interface TimerActions {
   setFromHyperfocus: (v: boolean) => void
 }
 
-export const useTimerStore = create<TimerState & TimerActions>((set) => ({
-  mode: 'pomodoro',
-  status: 'idle',
-  secondsRemaining: 25 * 60,
-  totalSeconds: 25 * 60,
-  pomodoroCount: 0,
-  sessionCount: 0,
-  activeTaskId: null,
-  startedAt: null,
-  fromHyperfocus: false,
+export const useTimerStore = create<TimerState & TimerActions>()(
+  persist(
+    (set) => ({
+      mode: 'pomodoro',
+      status: 'idle',
+      secondsRemaining: 25 * 60,
+      totalSeconds: 25 * 60,
+      pomodoroCount: 0,
+      sessionCount: 0,
+      activeTaskId: null,
+      startedAt: null,
+      fromHyperfocus: false,
 
-  setMode: (mode, totalSeconds) =>
-    set({ mode, secondsRemaining: totalSeconds, totalSeconds, status: 'idle', startedAt: null }),
+      setMode: (mode, totalSeconds) =>
+        set({ mode, secondsRemaining: totalSeconds, totalSeconds, status: 'idle', startedAt: null }),
 
-  setStatus: (status) => set({ status }),
+      setStatus: (status) => set({ status }),
 
-  setSecondsRemaining: (seconds) => set({ secondsRemaining: seconds }),
+      setSecondsRemaining: (seconds) => set({ secondsRemaining: seconds }),
 
-  setTotalSeconds: (totalSeconds) => set({ totalSeconds }),
+      setTotalSeconds: (totalSeconds) => set({ totalSeconds }),
 
-  incrementPomodoroCount: () => set((s) => ({ pomodoroCount: s.pomodoroCount + 1 })),
+      incrementPomodoroCount: () => set((s) => ({ pomodoroCount: s.pomodoroCount + 1 })),
 
-  incrementSessionCount: () => set((s) => ({ sessionCount: s.sessionCount + 1 })),
+      incrementSessionCount: () => set((s) => ({ sessionCount: s.sessionCount + 1 })),
 
-  resetPomodoroCount: () => set({ pomodoroCount: 0 }),
+      resetPomodoroCount: () => set({ pomodoroCount: 0 }),
 
-  setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
+      setActiveTaskId: (activeTaskId) => set({ activeTaskId }),
 
-  setStartedAt: (startedAt) => set({ startedAt }),
+      setStartedAt: (startedAt) => set({ startedAt }),
 
-  resetTimer: (totalSeconds) =>
-    set({ secondsRemaining: totalSeconds, totalSeconds, status: 'idle', startedAt: null }),
+      resetTimer: (totalSeconds) =>
+        set({ secondsRemaining: totalSeconds, totalSeconds, status: 'idle', startedAt: null }),
 
-  setFromHyperfocus: (fromHyperfocus) => set({ fromHyperfocus }),
-}))
+      setFromHyperfocus: (fromHyperfocus) => set({ fromHyperfocus }),
+    }),
+    {
+      name: 'pomodoro-timer',
+      partialize: (s) => ({
+        mode: s.mode,
+        status: s.status,
+        secondsRemaining: s.secondsRemaining,
+        totalSeconds: s.totalSeconds,
+        pomodoroCount: s.pomodoroCount,
+        sessionCount: s.sessionCount,
+        startedAt: s.startedAt,
+        fromHyperfocus: s.fromHyperfocus,
+      }),
+    },
+  ),
+)

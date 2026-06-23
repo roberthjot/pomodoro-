@@ -286,6 +286,26 @@ export function useTimer() {
     [timer, stopTick, getDuration],
   )
 
+  // Resume a running timer when the page (re)mounts — after navigating
+  // away/back, switching windows, or reloading. Recomputes the real elapsed
+  // time so the countdown stays accurate and never resets.
+  useEffect(() => {
+    const s = useTimerStore.getState()
+    if (s.status !== 'running') return
+    let remaining = s.secondsRemaining
+    if (s.startedAt) {
+      const elapsed = Math.floor((Date.now() - s.startedAt) / 1000)
+      remaining = Math.max(0, s.totalSeconds - elapsed)
+      s.setSecondsRemaining(remaining)
+    }
+    if (remaining > 0) {
+      playTick()
+      ambientMusic.play()
+      startInterval()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   useEffect(() => {
     return () => {
       clearInterval_()
