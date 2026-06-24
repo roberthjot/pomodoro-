@@ -2,10 +2,13 @@ import { useSettingsStore } from '@stores/settingsStore'
 import type { AmbientSound } from '@/types'
 
 interface AmbientState {
-  source: AudioBufferSourceNode
+  source: AudioBufferSourceNode | null
   gainNode: GainNode
   extras: AudioScheduledSourceNode[]
+  timers: ReturnType<typeof setInterval>[]
 }
+
+const MELODIC: AmbientSound[] = ['piano', 'lofi', 'space']
 
 let audioCtx: AudioContext | null = null
 let current: AmbientState | null = null
@@ -46,8 +49,113 @@ function createNoiseBuf(ctx: AudioContext): AudioBuffer {
   return buf
 }
 
+// C major pentatonic across two octaves — always sounds pleasant, never grating
+const PENTATONIC = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25]
+
+function buildMelodic(ctx: AudioContext, type: AmbientSound, volume: number): AmbientState {
+  const master = ctx.createGain()
+  master.gain.value = volume * 1.5
+  const warm = ctx.createBiquadFilter()
+  warm.type = 'lowpass'
+  warm.frequency.value = 2600
+  master.connect(warm)
+  warm.connect(ctx.destination)
+
+  const extras: AudioScheduledSourceNode[] = []
+  const timers: ReturnType<typeof setInterval>[] = []
+
+  // Sustained low pad chord (root-third-fifth)
+  const padGain = ctx.createGain()
+  padGain.gain.value = type === 'space' ? 0.12 : 0.05
+  padGain.connect(master)
+  for (const f of [130.81, 164.81, 196.0]) {
+    const o = ctx.createOscillator()
+    o.type = 'sine'
+    o.frequency.value = f
+    o.connect(padGain)
+    o.start()
+    extras.push(o)
+  }
+
+  const playNote = (freq: number, dur: number, peak: number, wave: OscillatorType) => {
+    const t = ctx.currentTime
+    const o = ctx.createOscillator()
+    o.type = wave
+    o.frequency.value = freq
+    const g = ctx.createGain()
+    g.gain.setValueAtTime(0.0001, t)
+    g.gain.exponentialRampToValueAtTime(peak, t + 0.02)
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur)
+    o.connect(g)
+    g.connect(master)
+    o.start(t)
+    o.stop(t + dur + 0.05)
+  }
+
+  if (type === 'piano' || type === 'lofi') {
+    timers.push(setInterval(() => {
+      if (Math.random() < 0.25) return // occasional rest
+      const f = PENTATONIC[Math.floor(Math.random() * PENTATONIC.length)]
+      playNote(f, 1.6, 0.14, 'triangle')
+    }, type === 'lofi' ? 700 : 900))
+  }
+
+  if (type === 'lofi') {
+    const hatBuf = createNoiseBuf(ctx) // reused for every hi-hat
+    const kick = () => {
+      const t = ctx.currentTime
+      const o = ctx.createOscillator()
+      o.type = 'sine'
+      o.frequency.setValueAtTime(120, t)
+      o.frequency.exponentialRampToValueAtTime(45, t + 0.15)
+      const g = ctx.createGain()
+      g.gain.setValueAtTime(0.3, t)
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18)
+      o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.2)
+    }
+    const hat = () => {
+      const t = ctx.currentTime
+      const nb = ctx.createBufferSource()
+      nb.buffer = hatBuf
+      const hp = ctx.createBiquadFilter()
+      hp.type = 'highpass'
+      hp.frequency.value = 7000
+      const g = ctx.createGain()
+      g.gain.setValueAtTime(0.08, t)
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.05)
+      nb.connect(hp); hp.connect(g); g.connect(master); nb.start(t); nb.stop(t + 0.06)
+    }
+    let beat = 0
+    timers.push(setInterval(() => {
+      if (beat % 2 === 0) kick(); else hat()
+      beat++
+    }, 400))
+  }
+
+  if (type === 'space') {
+    const lfo = ctx.createOscillator()
+    lfo.type = 'sine'
+    lfo.frequency.value = 0.05
+    const lfoGain = ctx.createGain()
+    lfoGain.gain.value = 700
+    lfo.connect(lfoGain)
+    lfoGain.connect(warm.frequency)
+    lfo.start()
+    extras.push(lfo)
+    timers.push(setInterval(() => {
+      if (Math.random() < 0.5) return
+      const f = PENTATONIC[4 + Math.floor(Math.random() * 4)] * 2
+      playNote(f, 3.5, 0.05, 'sine')
+    }, 2500))
+  }
+
+  return { source: null, gainNode: master, extras, timers }
+}
+
 function buildGraph(ctx: AudioContext, type: Exclude<AmbientSound, 'none'>, volume: number): AmbientState {
   stopInternal()
+
+  if (MELODIC.includes(type)) return buildMelodic(ctx, type, volume)
 
   const source = ctx.createBufferSource()
   source.buffer = createNoiseBuf(ctx)
@@ -126,12 +234,13 @@ function buildGraph(ctx: AudioContext, type: Exclude<AmbientSound, 'none'>, volu
   gain.connect(ctx.destination)
   source.start()
 
-  return { source, gainNode: gain, extras }
+  return { source, gainNode: gain, extras, timers: [] }
 }
 
 function stopInternal(): void {
   if (current) {
-    try { current.source.stop() } catch {}
+    for (const t of current.timers) clearInterval(t)
+    try { current.source?.stop() } catch {}
     for (const node of current.extras) {
       try { node.stop() } catch {}
     }

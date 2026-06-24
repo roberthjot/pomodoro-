@@ -22,6 +22,9 @@ export type AmbientSound =
   | 'stream'
   | 'fan'
   | 'drone'
+  | 'piano'
+  | 'lofi'
+  | 'space'
 
 export interface SoundSettings {
   alertSound: 'bell' | 'digital' | 'none'

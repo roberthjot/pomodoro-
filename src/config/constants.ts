@@ -31,6 +31,9 @@ export const AMBIENT_OPTIONS = [
   { value: 'stream' as const,      label: 'Arroyo',      emoji: '🏞️', description: 'Agua corriendo' },
   { value: 'fan' as const,         label: 'Ventilador',  emoji: '🌀', description: 'Zumbido constante' },
   { value: 'drone' as const,       label: 'Meditación',  emoji: '🧘', description: 'Tono profundo' },
+  { value: 'piano' as const,       label: 'Piano zen',   emoji: '🎹', description: 'Notas suaves' },
+  { value: 'lofi' as const,        label: 'Lo-fi',       emoji: '🎧', description: 'Ritmo relajado' },
+  { value: 'space' as const,       label: 'Espacial',    emoji: '🌌', description: 'Pads etéreos' },
 ]
 
 // Default notification settings
