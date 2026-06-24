@@ -4,7 +4,7 @@ import type { AmbientSound } from '@/types'
 interface AmbientState {
   source: AudioBufferSourceNode
   gainNode: GainNode
-  lfo?: OscillatorNode
+  extras: AudioScheduledSourceNode[]
 }
 
 let audioCtx: AudioContext | null = null
@@ -54,59 +54,87 @@ function buildGraph(ctx: AudioContext, type: Exclude<AmbientSound, 'none'>, volu
   source.loop = true
 
   const gain = ctx.createGain()
-  let lfo: OscillatorNode | undefined
+  const extras: AudioScheduledSourceNode[] = []
+
+  const filter = (filterType: BiquadFilterType, freq: number, q = 0.7) => {
+    const f = ctx.createBiquadFilter()
+    f.type = filterType
+    f.frequency.value = freq
+    f.Q.value = q
+    return f
+  }
+
+  // Slow amplitude wobble (waves / gusts)
+  const addWobble = (rate: number, depth: number) => {
+    const lfo = ctx.createOscillator()
+    lfo.type = 'sine'
+    lfo.frequency.value = rate
+    const lfoGain = ctx.createGain()
+    lfoGain.gain.value = depth
+    lfo.connect(lfoGain)
+    lfoGain.connect(gain.gain)
+    lfo.start()
+    extras.push(lfo)
+  }
 
   if (type === 'brown-noise') {
-    const f = ctx.createBiquadFilter()
-    f.type = 'lowpass'
-    f.frequency.value = 180
-    f.Q.value = 0.5
-    source.connect(f)
-    f.connect(gain)
+    const f = filter('lowpass', 180, 0.5)
+    source.connect(f); f.connect(gain)
     gain.gain.value = volume * 1.4
   } else if (type === 'white-noise') {
     source.connect(gain)
     gain.gain.value = volume * 0.6
   } else if (type === 'rain') {
-    const hi = ctx.createBiquadFilter()
-    hi.type = 'highpass'
-    hi.frequency.value = 1200
-    const lo = ctx.createBiquadFilter()
-    lo.type = 'lowpass'
-    lo.frequency.value = 9000
-    source.connect(hi)
-    hi.connect(lo)
-    lo.connect(gain)
+    const hi = filter('highpass', 1200)
+    const lo = filter('lowpass', 9000)
+    source.connect(hi); hi.connect(lo); lo.connect(gain)
     gain.gain.value = volume * 0.9
   } else if (type === 'ocean') {
-    const f = ctx.createBiquadFilter()
-    f.type = 'lowpass'
-    f.frequency.value = 700
-    source.connect(f)
-    f.connect(gain)
-
-    // LFO for wave motion
-    lfo = ctx.createOscillator()
-    lfo.type = 'sine'
-    lfo.frequency.value = 0.12
-    const lfoGain = ctx.createGain()
-    lfoGain.gain.value = volume * 0.35
-    lfo.connect(lfoGain)
-    lfoGain.connect(gain.gain)
+    const f = filter('lowpass', 700)
+    source.connect(f); f.connect(gain)
     gain.gain.value = volume * 0.55
-    lfo.start()
+    addWobble(0.12, volume * 0.35)
+  } else if (type === 'wind') {
+    const f = filter('lowpass', 480, 0.8)
+    source.connect(f); f.connect(gain)
+    gain.gain.value = volume * 0.8
+    addWobble(0.08, volume * 0.5)
+  } else if (type === 'stream') {
+    const hi = filter('highpass', 700)
+    const lo = filter('lowpass', 6500)
+    source.connect(hi); hi.connect(lo); lo.connect(gain)
+    gain.gain.value = volume * 0.8
+    addWobble(2.5, volume * 0.12)
+  } else if (type === 'fan') {
+    const f = filter('lowpass', 340, 1.3)
+    source.connect(f); f.connect(gain)
+    gain.gain.value = volume * 1.2
+  } else if (type === 'drone') {
+    // Low meditative tone (perfect fifth) over a faint noise bed
+    const o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.value = 110
+    const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = 164.81
+    const og = ctx.createGain(); og.gain.value = 0.18
+    o1.connect(og); o2.connect(og); og.connect(gain)
+    const f = filter('lowpass', 300)
+    const ng = ctx.createGain(); ng.gain.value = 0.25
+    source.connect(f); f.connect(ng); ng.connect(gain)
+    gain.gain.value = volume
+    o1.start(); o2.start()
+    extras.push(o1, o2)
   }
 
   gain.connect(ctx.destination)
   source.start()
 
-  return { source, gainNode: gain, lfo }
+  return { source, gainNode: gain, extras }
 }
 
 function stopInternal(): void {
   if (current) {
     try { current.source.stop() } catch {}
-    try { current.lfo?.stop() } catch {}
+    for (const node of current.extras) {
+      try { node.stop() } catch {}
+    }
     try { current.gainNode.disconnect() } catch {}
     current = null
   }

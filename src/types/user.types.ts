@@ -12,7 +12,16 @@ export interface UserProfile {
   lastSessionDate: Date | null
 }
 
-export type AmbientSound = 'none' | 'brown-noise' | 'rain' | 'ocean' | 'white-noise'
+export type AmbientSound =
+  | 'none'
+  | 'brown-noise'
+  | 'rain'
+  | 'ocean'
+  | 'white-noise'
+  | 'wind'
+  | 'stream'
+  | 'fan'
+  | 'drone'
 
 export interface SoundSettings {
   alertSound: 'bell' | 'digital' | 'none'

@@ -22,11 +22,15 @@ export const DEFAULT_SOUND = {
 
 // Ambient sound options
 export const AMBIENT_OPTIONS = [
-  { value: 'none' as const,        label: 'None',        emoji: '🔇', description: '' },
-  { value: 'brown-noise' as const, label: 'Brown Noise', emoji: '🟤', description: 'Deep rumble' },
-  { value: 'rain' as const,        label: 'Rain',        emoji: '🌧️', description: 'Gentle rain' },
-  { value: 'ocean' as const,       label: 'Ocean',       emoji: '🌊', description: 'Ocean waves' },
-  { value: 'white-noise' as const, label: 'White Noise', emoji: '📡', description: 'Flat static' },
+  { value: 'none' as const,        label: 'Ninguno',     emoji: '🔇', description: '' },
+  { value: 'brown-noise' as const, label: 'Ruido marrón', emoji: '🟤', description: 'Retumbo profundo' },
+  { value: 'rain' as const,        label: 'Lluvia',      emoji: '🌧️', description: 'Lluvia suave' },
+  { value: 'ocean' as const,       label: 'Océano',      emoji: '🌊', description: 'Olas del mar' },
+  { value: 'white-noise' as const, label: 'Ruido blanco', emoji: '📡', description: 'Estática plana' },
+  { value: 'wind' as const,        label: 'Viento',      emoji: '🍃', description: 'Brisa suave' },
+  { value: 'stream' as const,      label: 'Arroyo',      emoji: '🏞️', description: 'Agua corriendo' },
+  { value: 'fan' as const,         label: 'Ventilador',  emoji: '🌀', description: 'Zumbido constante' },
+  { value: 'drone' as const,       label: 'Meditación',  emoji: '🧘', description: 'Tono profundo' },
 ]
 
 // Default notification settings
